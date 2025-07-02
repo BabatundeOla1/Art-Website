@@ -2,6 +2,8 @@ package com.theezy.theezyart.dto.response;
 
 
 public class SaveArtworkResponse {
+
+//    private String id;
     private String title;
     private String medium;
     private int year;
