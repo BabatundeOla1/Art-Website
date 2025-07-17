@@ -3,14 +3,22 @@ package com.theezy.theezyart.dto.response;
 
 public class SaveArtworkResponse {
 
-//    private String id;
+    private String id;
     private String title;
     private String medium;
     private int year;
     private String size;
-
-    private String cloudImageUrl;
+    private String imageUrl;
     private String imagePath;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
 
     public String getTitle() {
         return title;
@@ -45,18 +53,18 @@ public class SaveArtworkResponse {
     }
 
     public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImagePath() {
         return imagePath;
     }
 
-    public void setImageUrl(String imagePath) {
+    public void setCloudImageUrl(String imagePath) {
         this.imagePath = imagePath;
-    }
-
-    public String getCloudImageUrl() {
-        return cloudImageUrl;
-    }
-
-    public void setCloudImageUrl(String cloudImageUrl) {
-        this.cloudImageUrl = cloudImageUrl;
     }
 }

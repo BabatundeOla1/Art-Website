@@ -29,23 +29,27 @@ class ArtworkServiceImplTest {
     @Autowired
     private ArtworkRepository artworkRepository;
 
+    @Autowired
+    private CloudinaryService cloudinaryService;
+
     @BeforeEach
     void clearArtworkDatabase(){
         artworkRepository.deleteAll();
+//        cloudinaryService.deleteAllTestImages();
     }
 
     void setUpArtwork(SaveArtworkRequest saveArtworkRequest){
         saveArtworkRequest.setYear(2025);
         saveArtworkRequest.setMedium("Acrylic on Canvas");
         saveArtworkRequest.setImagePath("C:\\Users\\DELL USER\\Pictures\\my works\\A Guide To life_grid2.png");
-        saveArtworkRequest.setTitle("Memories");
+        saveArtworkRequest.setTitle("test-image Memories");
         saveArtworkRequest.setSize("70cm by 70cm");
     }
     void setUpSecondArtwork(SaveArtworkRequest secondArtwork){
         secondArtwork.setYear(2025);
         secondArtwork.setMedium("Acrylic on Canvas");
         secondArtwork.setImagePath("C:\\Users\\DELL USER\\Pictures\\my works\\Pinterest\\download (1).jpg");
-        secondArtwork.setTitle("Moment of reflection");
+        secondArtwork.setTitle("test-image Moment of reflection");
         secondArtwork.setSize("40cm by 70cm");
     }
 
@@ -56,12 +60,12 @@ class ArtworkServiceImplTest {
 
         SaveArtworkResponse savedResponse = artworkService.saveArtwork(saveArtworkRequest);
 
-        assertEquals("Memories", savedResponse.getTitle());
+        assertEquals("test-image Memories", savedResponse.getTitle());
         assertEquals("70cm by 70cm", savedResponse.getSize());
         assertThat(savedResponse).isNotNull();
         assertThat(savedResponse.getImageUrl()).isNotEmpty();
         assertEquals(1, artworkRepository.count());
-        System.out.println(savedResponse.getImageUrl());
+        System.out.println("Artwork ImageURL: " + savedResponse.getImageUrl());
     }
 
     @Test

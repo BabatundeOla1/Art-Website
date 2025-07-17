@@ -24,48 +24,79 @@ public class CloudinaryService {
     }
 
     public String uploadImage(String filePath) {
+        verifyFilePath(filePath);
         try {
             File file = new File(filePath);
-            Map<?, ?> response = cloudinary.uploader().upload(file, ObjectUtils.emptyMap());
+            Map<String, Object> options = ObjectUtils.asMap("folder", "ArtWebsite");
+
+            Map<?, ?> response = cloudinary.uploader().upload(file, options);
+            System.out.println("Uploaded to Cloudinary with public_id: " + response.get("public_id"));
+
             return response.get("secure_url").toString();
         } catch (IOException e) {
             throw new RuntimeException("Upload to Cloudinary failed", e);
         }
     }
 
+
+//    public String uploadImageForTest(String filePath) {
+//        verifyFilePath(filePath);
+//        try {
+//            File file = new File(filePath);
+//            Map<String, Object> options = ObjectUtils.asMap("tags", new String[]{"test-image"});
+//            Map<?, ?> response = cloudinary.uploader().upload(file, options);
+//            String publicId = response.get("public_id").toString();
+//            System.out.println("Uploaded image public_id: " + publicId);
+//            return response.get("secure_url").toString();
+//        } catch (IOException e) {
+//            throw new RuntimeException("Upload to Cloudinary failed", e);
+//        }
+//    }
+
     public boolean deleteImage(String imageUrl) {
         try {
             String publicId = extractPublicId(imageUrl);
             Map<?, ?> result = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+            System.out.println("Deleted test images: " + result);
             return "ok".equals(result.get("result"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete image from Cloudinary", e);
         }
     }
 
+    public void deleteAllTestImages() {
+        try {
+            Map<String, Object> options = ObjectUtils.asMap("tag", "test-image");
+            Map result = cloudinary.api().deleteResourcesByTag("test-image", options);
+            System.out.println("Deleted test images: " + result);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete test images from Cloudinary", e);
+        }
+    }
+
+
+    private static void verifyFilePath(String filePath) {
+        if (filePath == null || filePath.isBlank()) {
+            throw new IllegalArgumentException("File path cannot be null or empty");
+        }
+    }
     private String extractPublicId(String url) {
         try {
-            String[] parts = url.split("/");
-            int uploadIndex = -1;
-
-            for (int index = 0; index < parts.length; index++) {
-                if (parts[index].equals("upload")) {
-                    uploadIndex = index;
-                    break;
-                }
+            //https://res.cloudinary.com/dqhye0rza/image/upload/v1752608593/ArtWebsite/d4tumz8z7iu7f3se8xcy.png
+            String[] parts = url.split("/upload/");
+            if (parts.length != 2){
+                throw new IllegalArgumentException("Invalid Cloudinary URL format: " + url);
             }
 
-            if (uploadIndex == -1 || uploadIndex + 2 >= parts.length) {
-                throw new IllegalArgumentException("Invalid Cloudinary URL: " + url);
+            //v1752608593/Art%20Website/d4tumz8z7iu7f3se8xcy.png (Split Off Version'v17..')
+            String pathAfterUpload = parts[1];
+            String[] pathParts = pathAfterUpload.split("/", 2);
+            if (pathParts.length != 2) {
+                throw new IllegalArgumentException("Could not extract path after version in URL: " + url);
             }
 
-            StringBuilder publicIdBuilder = new StringBuilder();
-            for (int element = uploadIndex + 2; element < parts.length; element++) {
-                publicIdBuilder.append(parts[element]);
-                if (element < parts.length - 1) publicIdBuilder.append("/");
-            }
-
-            String publicIdWithExtension = publicIdBuilder.toString();
+            //Art%20Website/d4tumz8z7iu7f3se8xcy.png
+            String publicIdWithExtension = pathParts[1];
             int dotIndex = publicIdWithExtension.lastIndexOf('.');
             return (dotIndex == -1) ? publicIdWithExtension : publicIdWithExtension.substring(0, dotIndex);
         } catch (Exception e) {

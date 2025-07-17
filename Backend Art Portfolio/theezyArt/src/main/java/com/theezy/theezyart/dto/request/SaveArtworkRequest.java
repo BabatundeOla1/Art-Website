@@ -7,7 +7,6 @@ public class SaveArtworkRequest {
     private int year;
     private String size;
     private String imagePath;
-
     private String imageUrl;
 
     public String getTitle() {
@@ -43,18 +42,18 @@ public class SaveArtworkRequest {
     }
 
     public String getImageUrl() {
-        return imagePath;
+        return imageUrl;
     }
 
-    public void setImageUrl(String imagePath) {
+    public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
 
     public String getImagePath() {
-        return imageUrl;
+        return imagePath;
     }
 
-    public void setImagePath(String imageUrl) {
+    public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
 }
