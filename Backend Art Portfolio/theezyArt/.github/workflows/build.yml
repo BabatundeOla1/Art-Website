@@ -70,3 +70,4 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/theezyart:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/theezyart:latest
+
