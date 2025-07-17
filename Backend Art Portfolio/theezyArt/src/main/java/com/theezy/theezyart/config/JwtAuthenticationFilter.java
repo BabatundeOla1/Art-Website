@@ -1,6 +1,11 @@
 package com.theezy.theezyart.config;
 
+import com.theezy.theezyart.data.model.IPAddress;
+import com.theezy.theezyart.data.model.LoginHistory;
+import com.theezy.theezyart.data.repositories.LoginHistoryRepository;
+import com.theezy.theezyart.services.IPAddressService;
 import com.theezy.theezyart.services.JWTService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +21,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 //@RequiredArgsConstructor
 @Component
@@ -25,6 +31,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JWTService jwtService;
     @Autowired
     private UserDetailsService userDetailService;
+    @Autowired
+    private LoginHistoryRepository loginHistoryRepository;
+    @Autowired
+    private IPAddressService ipAddressService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -40,19 +50,49 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String jwt = authHeader.substring(7);
-        String userEmail = jwtService.extractUserName(jwt);
+        try {
+            String userEmail = jwtService.extractUserName(jwt);
 
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailService.loadUserByUsername(userEmail);
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailService.loadUserByUsername(userEmail);
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+
+            //IP Address And login info
+            String clientIp = request.getHeader("X-Forwarded-For");
+            if (clientIp == null || clientIp.isEmpty()) {
+                clientIp = request.getRemoteAddr();
+            }
+
+            IPAddress ipAddressResponse = ipAddressService.geoIPLookup(clientIp);
+
+            LoginHistory history = new LoginHistory();
+            history.setEmail(userEmail);
+            history.setEndpoint(request.getRequestURI());
+            history.setMethod(request.getMethod());
+            if (ipAddressResponse != null) {
+                history.setIpAddress(ipAddressResponse);
+            }
+            history.setTimeStamp(LocalDateTime.now());
+            loginHistoryRepository.save(history);
+
+            filterChain.doFilter(request, response);
         }
-        filterChain.doFilter(request, response);
+        catch ( ExpiredJwtException e){
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Token expired. Please log in again.\"}");
+        }catch (Exception e){
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Invalid token.\"}");
+        }
     }
 }

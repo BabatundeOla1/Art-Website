@@ -28,10 +28,7 @@ public class CloudinaryService {
         try {
             File file = new File(filePath);
             Map<String, Object> options = ObjectUtils.asMap("folder", "ArtWebsite");
-
             Map<?, ?> response = cloudinary.uploader().upload(file, options);
-            System.out.println("Uploaded to Cloudinary with public_id: " + response.get("public_id"));
-
             return response.get("secure_url").toString();
         } catch (IOException e) {
             throw new RuntimeException("Upload to Cloudinary failed", e);

@@ -20,6 +20,7 @@ target/
 *.ipr
 C:\Users\DELL USER\Desktop\ArtPortFolio\Backend Art Portfolio\theezyArt\src\main\resources\application.properties
 C:\Users\DELL USER\Desktop\ArtPortFolio\Backend Art Portfolio\theezyArt\src\test\resources\application.properties
+C:\Users\DELL USER\Desktop\ArtPortFolio\Backend Art Portfolio\theezyArt\Dockerfile
 
 ### NetBeans ###
 /nbproject/private/
